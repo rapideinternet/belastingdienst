@@ -40,6 +40,8 @@ class DeclarationFactory
         return $this->create($declarationId, $block);
     }
 
+
+
     public function calculateBlock(Carbon $from, Carbon $till)
     {
         $diff = $from->diff($till);
@@ -88,6 +90,21 @@ class DeclarationFactory
             case BlockTypes::YEARLY:
                 return 0;
         }
+    }
+
+    public function calculateFiscalYear(Carbon $from, int $fiscalYearStartMonth): int
+    {
+        // get the year of the start date
+        $year = (int)$from->format('Y');
+
+        // check if the start date is before the fiscal year start month
+        if ((int)$from->format('m') < $fiscalYearStartMonth) {
+            // if so, the year is the previous year
+            $year--;
+        }
+
+        return $year;
+
     }
 
     public function calculateFourWeekPeriod(Carbon $from): int

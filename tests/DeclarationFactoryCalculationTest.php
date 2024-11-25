@@ -47,12 +47,46 @@ class DeclarationFactoryCalculationTest extends \PHPUnit\Framework\TestCase
             $factory->calculateBlock(new Carbon('01-07-2020'), new Carbon('31-12-2020'))
         );
 
+        // Quarter
+        $this->assertEquals(
+            BlockTypes::QUARTER(),
+            $factory->calculateBlock(new Carbon('01-01-2020'), new Carbon('31-03-2020'))
+        );
+
+        // Shifted Quarter
+        $this->assertEquals(
+            BlockTypes::QUARTER(),
+            $factory->calculateBlock(new Carbon('01-02-2020'), new Carbon('30-04-2020'))
+        );
+        $this->assertEquals(
+            BlockTypes::QUARTER(),
+            $factory->calculateBlock(new Carbon('01-03-2020'), new Carbon('31-05-2020'))
+        );
+
         //Year
         $this->assertEquals(
             BlockTypes::YEARLY(),
             $factory->calculateBlock(new Carbon('01-01-2020'), new Carbon('31-12-2020'))
         );
 
+    }
+
+    public function testFiscalYearCalculations() {
+
+        $factory = new \Mijnkantoor\Belastingdienst\DeclarationFactory();
+
+        $this->assertEquals(
+            2021,
+            $factory->calculateFiscalYear(new Carbon('01-01-2022'), 3)
+        );
+        $this->assertEquals(
+            2021,
+            $factory->calculateFiscalYear(new Carbon('01-04-2022'), 5)
+        );
+        $this->assertEquals(
+            2022,
+            $factory->calculateFiscalYear(new Carbon('01-03-2022'), 3)
+        );
     }
 
     public function testPeriodCalculations()
@@ -128,6 +162,26 @@ class DeclarationFactoryCalculationTest extends \PHPUnit\Framework\TestCase
             $factory->calculatePeriod(BlockTypes::HALFYEAR(), new Carbon('01-07-2020'), new Carbon('31-12-2020'))
         );
 
+        // Quarter
+        $this->assertEquals(
+            1,
+            $factory->calculatePeriod(BlockTypes::QUARTER(), new Carbon('01-01-2020'), new Carbon('31-03-2020'))
+        );
+
+        // Shifted Quarter
+        $this->assertEquals(
+            1,
+            $factory->calculatePeriod(BlockTypes::QUARTER(), new Carbon('01-02-2020'), new Carbon('30-04-2020'))
+        );
+        $this->assertEquals(
+            1,
+            $factory->calculatePeriod(BlockTypes::QUARTER(), new Carbon('01-03-2020'), new Carbon('31-05-2020'))
+        );
+        $this->assertEquals(
+            2,
+            $factory->calculatePeriod(BlockTypes::QUARTER(), new Carbon('01-04-2020'), new Carbon('30-06-2020'))
+        );
+
 
         //Year
         $this->assertEquals(
@@ -191,6 +245,9 @@ class DeclarationFactoryCalculationTest extends \PHPUnit\Framework\TestCase
                 ['01-02-2020', '30-04-2020', '001000019B01', '8001000011001220', '31-05-2020', null],
                 ['01-03-2020', '31-05-2020', '001000019B01', '4001000011001230', '30-06-2020', null],
                 ['01-09-2020', '30-11-2020', '001000019B01', '2001000011001290', '31-12-2020', null],
+                ['01-09-2024', '30-11-2024', '511698549B01', '9511698541401290', '31-12-2024', null],
+                ['01-11-2024', '30-01-2025', '511698549B01', '0511698541401310', '28-02-2025', null],
+                ['01-12-2024', '28-02-2025', '511698549B01', '7511698541401320', '31-03-2025', null],
 
                 // normal quarter
                 ['01-01-2020', '31-03-2020', '001000019B01', '1001000011001210', '30-04-2020', null],
