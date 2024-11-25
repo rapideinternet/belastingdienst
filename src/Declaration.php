@@ -5,17 +5,14 @@ declare(strict_types=1);
 namespace Mijnkantoor\Belastingdienst;
 
 
+use Carbon\Carbon;
+
 class Declaration
 {
-    public $declarationId;
-    public $paymentReference;
-    public $paymentDueDate;
-
-    public function __construct($declarationId, $paymentReference, $paymentDueDate)
+    public function __construct(public string $declarationId,
+                                public string $paymentReference,
+                                public Carbon $paymentDueDate
+    )
     {
-
-        $this->declarationId = $declarationId;
-        $this->paymentReference = $paymentReference;
-        $this->paymentDueDate = $paymentDueDate;
     }
 }

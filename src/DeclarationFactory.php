@@ -9,10 +9,18 @@ use Mijnkantoor\Belastingdienst\Enums\BlockTypes;
 use Mijnkantoor\Belastingdienst\Enums\DeclarationTypes;
 use Mijnkantoor\Belastingdienst\Exceptions\DeclarationException;
 use Mijnkantoor\Belastingdienst\Exceptions\PeriodException;
+use Webmozart\Assert\Assert;
 
 class DeclarationFactory
 {
-    public function createFromDeclarationIdAndDateRange(DeclarationTypes $decType, $declarationId, Carbon $from, Carbon $till, BlockTypes $blockType = null, int $period = null)
+    public function createFromDeclarationIdAndDateRange(
+        DeclarationTypes $decType, 
+        string $declarationId, 
+        Carbon $from, 
+        Carbon $till, 
+        ?BlockTypes $blockType = null, 
+        ?int $period = null
+    ): Declaration
     {
         $from = $from->copy();
         $till = $till->copy();
@@ -21,8 +29,8 @@ class DeclarationFactory
             throw DeclarationException::incompatbleLoan();
         }
 
-        $blockType = $blockType ?? $this->calculateBlock($from, $till);
-        $period = $period ?? $this->calculatePeriod($blockType, $from, $till);
+        $blockType ??= $this->calculateBlock($from, $till);
+        $period ??= $this->calculatePeriod($blockType, $from, $till);
 
         $year = $from->year;
         $month = $from->month; // we need this one for shifted quarters
@@ -42,7 +50,7 @@ class DeclarationFactory
 
 
 
-    public function calculateBlock(Carbon $from, Carbon $till)
+    public function calculateBlock(Carbon $from, Carbon $till): BlockTypes
     {
         $diff = $from->diff($till);
 
@@ -76,20 +84,14 @@ class DeclarationFactory
         $from = $from->copy();
         $firstOfYear = $from->copy()->firstOfYear();
         $till = $till->copy();
-
-
-        switch ($type->getValue()) {
-            case BlockTypes::FOURWEEK:
-                return $this->calculateFourWeekPeriod($from);
-            case BlockTypes::MONTHLY:
-                return $from->month;
-            case BlockTypes::QUARTER:
-                return $from->quarter;
-            case BlockTypes::HALFYEAR:
-                return $from->month < 6 ? 1 : 2;
-            case BlockTypes::YEARLY:
-                return 0;
-        }
+        return match ($type->getValue()) {
+            BlockTypes::FOURWEEK => $this->calculateFourWeekPeriod($from),
+            BlockTypes::MONTHLY => $from->month,
+            BlockTypes::QUARTER => $from->quarter,
+            BlockTypes::HALFYEAR => $from->month < 6 ? 1 : 2,
+            BlockTypes::YEARLY => 0,
+            default => throw DeclarationException::notSupported($type->getValue()),
+        };
     }
 
     public function calculateFiscalYear(Carbon $from, int $fiscalYearStartMonth): int
@@ -104,7 +106,6 @@ class DeclarationFactory
         }
 
         return $year;
-
     }
 
     public function calculateFourWeekPeriod(Carbon $from): int
@@ -121,7 +122,10 @@ class DeclarationFactory
         throw PeriodException::invalidPeriod();
     }
 
-    public function generateFourWeekPeriodTable(Carbon $from)
+    /**
+     * @return array<int, array{from: Carbon, till: Carbon}>
+     */
+    public function generateFourWeekPeriodTable(Carbon $from): array
     {
         $from = $from->copy()->startOfYear();
         $startCount = $from->copy()->previous('Sunday');
@@ -129,6 +133,8 @@ class DeclarationFactory
         if ($from->weekOfYear > 1) {
             $startCount = $from->copy()->addWeek()->previous('Sunday');
         }
+
+        Assert::isInstanceOf($startCount, Carbon::class);
 
         $till = $startCount->copy()->addWeeks(4);
         $endOfYear = $from->copy()->endOfYear();
@@ -151,9 +157,10 @@ class DeclarationFactory
         return $table;
     }
 
-    public function create($declarationId, TimeBlock $timeBlock)
+    public function create(string $declarationId, TimeBlock $timeBlock): Declaration
     {
         $declarationIdStripped = preg_replace('/[\s.]+/', '', $declarationId);
+        Assert::string($declarationIdStripped);
 
         //Composite the payment reference
         $paymentReference = sprintf('X%s%s%s%s%s%s',
@@ -166,7 +173,7 @@ class DeclarationFactory
         );
 
         //Calculate control number
-        $controlNumber = $this->getControllNumber($paymentReference);
+        $controlNumber = $this->getControlNumber($paymentReference);
 
         //Substitute control number
         $paymentReference[0] = $controlNumber;
@@ -177,7 +184,7 @@ class DeclarationFactory
         return new Declaration($declarationId, $paymentReference, $paymentDueDate);
     }
 
-    private function getControllNumber($value)
+    private function getControlNumber(string $value): int
     {
         $number = substr($value, (strlen($value) === 16 ? 1 : 2));
 
@@ -186,28 +193,28 @@ class DeclarationFactory
         }
 
         $sum = 0;
-        $sum += $number[strlen($number) - 1] * 2;
-        $sum += $number[strlen($number) - 2] * 4;
-        $sum += $number[strlen($number) - 3] * 8;
-        $sum += $number[strlen($number) - 4] * 5;
-        $sum += $number[strlen($number) - 5] * 10;
-        $sum += $number[strlen($number) - 6] * 9;
-        $sum += $number[strlen($number) - 7] * 7;
-        $sum += $number[strlen($number) - 8] * 3;
-        $sum += $number[strlen($number) - 9] * 6;
-        $sum += $number[strlen($number) - 10] * 1;
-        $sum += $number[strlen($number) - 11] * 2;
-        $sum += $number[strlen($number) - 12] * 4;
-        $sum += $number[strlen($number) - 13] * 8;
-        $sum += $number[strlen($number) - 14] * 5;
-        $sum += $number[strlen($number) - 15] * 10;
+        $sum += (int)$number[strlen($number) - 1] * 2;
+        $sum += (int)$number[strlen($number) - 2] * 4;
+        $sum += (int)$number[strlen($number) - 3] * 8;
+        $sum += (int)$number[strlen($number) - 4] * 5;
+        $sum += (int)$number[strlen($number) - 5] * 10;
+        $sum += (int)$number[strlen($number) - 6] * 9;
+        $sum += (int)$number[strlen($number) - 7] * 7;
+        $sum += (int)$number[strlen($number) - 8] * 3;
+        $sum += (int)$number[strlen($number) - 9] * 6;
+        $sum += (int)$number[strlen($number) - 10] * 1;
+        $sum += (int)$number[strlen($number) - 11] * 2;
+        $sum += (int)$number[strlen($number) - 12] * 4;
+        $sum += (int)$number[strlen($number) - 13] * 8;
+        $sum += (int)$number[strlen($number) - 14] * 5;
+        $sum += (int)$number[strlen($number) - 15] * 10;
 
         $check = 11 - ($sum % 11);
 
         return $check == 10 ? 1 : ($check == 11 ? 0 : $check);
     }
 
-    public function calculatePaymentDueDate(TimeBlock $timeBlock)
+    public function calculatePaymentDueDate(TimeBlock $timeBlock): Carbon
     {
         $till = $timeBlock->getTill()->copy();
 
@@ -223,6 +230,8 @@ class DeclarationFactory
             case BlockTypes::HALFYEAR:
             case BlockTypes::YEARLY:
                 return $till->addMonthNoOverflow()->endOfMonth();
+            default:
+                throw DeclarationException::notSupported($timeBlock->getBlock()->getValue());
         }
     }
 }
