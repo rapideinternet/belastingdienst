@@ -11,4 +11,4 @@ jobs:
       - uses: php-actions/composer@v6
         with:
           memory_limit: 256M
-      - uses: php-actions/phpunit@v3
+      - uses: php-actions/phpunit@v2
