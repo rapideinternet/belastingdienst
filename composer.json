@@ -7,16 +7,23 @@
     {
       "name": "Peter Mein",
       "email": "peter@infratron.io"
+    },
+    {
+      "name": "Rens Reinders",
+      "email": "rens@rapide.software"
     }
   ],
   "require": {
-    "php": ">=7.1",
+    "php": ">=8.0",
     "myclabs/php-enum": "^1.7",
-    "nesbot/carbon": "^2.40"
+    "nesbot/carbon": "^2.40",
+    "webmozart/assert": "^1.11"
   },
   "require-dev": {
     "mockery/mockery": "^1.3.1",
-    "phpunit/phpunit": "^9.3"
+    "phpunit/phpunit": "^9.4|^10|^11",
+    "rector/rector": "^1.2",
+    "phpstan/phpstan": "^1.12"
   },
   "autoload": {
     "psr-4": {

@@ -6,7 +6,7 @@ namespace Mijnkantoor\Belastingdienst\Exceptions;
 
 class PeriodException extends \RuntimeException
 {
-    public static function invalidPeriod()
+    public static function invalidPeriod(): self
     {
         return new self(sprintf('Invalid period'));
     }

@@ -6,7 +6,10 @@ use Mijnkantoor\Belastingdienst\Enums\DeclarationTypes;
 
 class DeclarationFactoryCalculationTest extends \PHPUnit\Framework\TestCase
 {
-    public function testBlockCalculations()
+    /**
+     * @test
+     */
+    public function blockCalculations(): void
     {
         $factory = new \Mijnkantoor\Belastingdienst\DeclarationFactory();
 
@@ -71,7 +74,8 @@ class DeclarationFactoryCalculationTest extends \PHPUnit\Framework\TestCase
 
     }
 
-    public function testFiscalYearCalculations() {
+    public function testFiscalYearCalculations(): void 
+    {
 
         $factory = new \Mijnkantoor\Belastingdienst\DeclarationFactory();
 
@@ -89,7 +93,7 @@ class DeclarationFactoryCalculationTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    public function testPeriodCalculations()
+    public function testPeriodCalculations(): void
     {
         $factory = new \Mijnkantoor\Belastingdienst\DeclarationFactory();
 
@@ -191,7 +195,7 @@ class DeclarationFactoryCalculationTest extends \PHPUnit\Framework\TestCase
 
     }
 
-    public function testLoanNumber()
+    public function testLoanNumber(): void
     {
         $factory = new \Mijnkantoor\Belastingdienst\DeclarationFactory();
 
