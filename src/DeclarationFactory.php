@@ -84,7 +84,7 @@ class DeclarationFactory
             case BlockTypes::QUARTER:
                 return $from->quarter;
             case BlockTypes::HALFYEAR:
-                return $from->month < 6 ? 1 : 2;
+                return $from->month <= 6 ? 1 : 2;
             case BlockTypes::YEARLY:
                 return 0;
         }

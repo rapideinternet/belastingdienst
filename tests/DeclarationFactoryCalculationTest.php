@@ -154,13 +154,17 @@ class DeclarationFactoryCalculationTest extends TestCase
 
         $this->assertEquals(
             1,
-            $factory->calculatePeriod(BlockTypes::HALFYEAR, new Carbon('01-01-2021'))
+            $factory->calculatePeriod(BlockTypes::HALFYEAR, new Carbon('30-06-2020'))
         );
-
 
         $this->assertEquals(
             2,
             $factory->calculatePeriod(BlockTypes::HALFYEAR, new Carbon('01-07-2020'))
+        );
+
+        $this->assertEquals(
+            2,
+            $factory->calculatePeriod(BlockTypes::HALFYEAR, new Carbon('31-12-2020'))
         );
 
         // Quarter
