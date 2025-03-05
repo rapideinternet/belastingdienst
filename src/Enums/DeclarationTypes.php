@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Mijnkantoor\Belastingdienst\Enums;
 
-use MyCLabs\Enum\Enum;
-
-final class DeclarationTypes extends Enum
+enum DeclarationTypes: string
 {
-    public const LOAN = 'loan';
-    public const REVENUE = 'revenue';
+    case LOAN = 'loan';
+    case REVENUE = 'revenue';
 }

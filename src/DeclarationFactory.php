@@ -9,20 +9,28 @@ use Mijnkantoor\Belastingdienst\Enums\BlockTypes;
 use Mijnkantoor\Belastingdienst\Enums\DeclarationTypes;
 use Mijnkantoor\Belastingdienst\Exceptions\DeclarationException;
 use Mijnkantoor\Belastingdienst\Exceptions\PeriodException;
+use Mijnkantoor\Belastingdienst\Exceptions\TimeBlockException;
 
 class DeclarationFactory
 {
-    public function createFromDeclarationIdAndDateRange(DeclarationTypes $decType, $declarationId, Carbon $from, Carbon $till, BlockTypes $blockType = null, int $period = null)
+    public function createFromDeclarationIdAndDateRange(
+        DeclarationTypes $decType,
+        string $declarationId,
+        Carbon $from,
+        Carbon $till,
+        ?BlockTypes $blockType = null,
+        ?int $period = null
+    ): Declaration
     {
         $from = $from->copy();
         $till = $till->copy();
 
-        if ($blockType === null && $decType === DeclarationTypes::LOAN()) {
-            throw DeclarationException::incompatbleLoan();
+        if ($blockType === null && $decType === DeclarationTypes::LOAN) {
+            throw DeclarationException::incompatibleLoan();
         }
 
         $blockType = $blockType ?? $this->calculateBlock($from, $till);
-        $period = $period ?? $this->calculatePeriod($blockType, $from, $till);
+        $period = $period ?? $this->calculatePeriod($blockType, $from);
 
         $year = $from->year;
         $month = $from->month; // we need this one for shifted quarters
@@ -40,45 +48,35 @@ class DeclarationFactory
         return $this->create($declarationId, $block);
     }
 
-
-
-    public function calculateBlock(Carbon $from, Carbon $till)
+    public function calculateBlock(Carbon $from, Carbon $till): BlockTypes
     {
-        $diff = $from->diff($till);
+        $differenceInDays = $from->diffInDays($till);
 
         if ($from->format('j') == 1) {
-            if ($diff->days >= 27 && $diff->days <= 31) {
-                //month
-                return BlockTypes::MONTHLY();
+            if ($differenceInDays >= 27 && $differenceInDays <= 31) {
+                return BlockTypes::MONTHLY;
             }
 
-            if ($diff->days > 31 && $diff->days <= 168) {
-                //half year
-                return BlockTypes::QUARTER();
+            if ($differenceInDays > 31 && $differenceInDays <= 168) {
+                return BlockTypes::QUARTER;
             }
 
-            if ($diff->days > 168 && $diff->days <= 186) {
-                //half year
-                return BlockTypes::HALFYEAR();
+            if ($differenceInDays > 168 && $differenceInDays <= 186) {
+                return BlockTypes::HALFYEAR;
             }
 
-            //year
-            return BlockTypes::YEARLY();
+            return BlockTypes::YEARLY;
 
         }
 
-        return BlockTypes::FOURWEEK();
-        //shifted so must be a half month aka 4 weeks
+        return BlockTypes::FOURWEEK;
     }
 
-    public function calculatePeriod(BlockTypes $type, Carbon $from, Carbon $till): int
+    public function calculatePeriod(BlockTypes $type, Carbon $from): int
     {
         $from = $from->copy();
-        $firstOfYear = $from->copy()->firstOfYear();
-        $till = $till->copy();
 
-
-        switch ($type->getValue()) {
+        switch ($type) {
             case BlockTypes::FOURWEEK:
                 return $this->calculateFourWeekPeriod($from);
             case BlockTypes::MONTHLY:
@@ -90,6 +88,8 @@ class DeclarationFactory
             case BlockTypes::YEARLY:
                 return 0;
         }
+
+        throw PeriodException::invalidPeriod();
     }
 
     public function calculateFiscalYear(Carbon $from, int $fiscalYearStartMonth): int
@@ -121,7 +121,7 @@ class DeclarationFactory
         throw PeriodException::invalidPeriod();
     }
 
-    public function generateFourWeekPeriodTable(Carbon $from)
+    public function generateFourWeekPeriodTable(Carbon $from): array
     {
         $from = $from->copy()->startOfYear();
         $startCount = $from->copy()->previous('Sunday');
@@ -151,7 +151,7 @@ class DeclarationFactory
         return $table;
     }
 
-    public function create($declarationId, TimeBlock $timeBlock)
+    public function create($declarationId, TimeBlock $timeBlock): Declaration
     {
         $declarationIdStripped = preg_replace('/[\s.]+/', '', $declarationId);
 
@@ -166,7 +166,7 @@ class DeclarationFactory
         );
 
         //Calculate control number
-        $controlNumber = $this->getControllNumber($paymentReference);
+        $controlNumber = $this->getControlNumber($paymentReference);
 
         //Substitute control number
         $paymentReference[0] = $controlNumber;
@@ -177,7 +177,7 @@ class DeclarationFactory
         return new Declaration($declarationId, $paymentReference, $paymentDueDate);
     }
 
-    private function getControllNumber($value)
+    private function getControlNumber(string $value): int
     {
         $number = substr($value, (strlen($value) === 16 ? 1 : 2));
 
@@ -207,7 +207,7 @@ class DeclarationFactory
         return $check == 10 ? 1 : ($check == 11 ? 0 : $check);
     }
 
-    public function calculatePaymentDueDate(TimeBlock $timeBlock)
+    public function calculatePaymentDueDate(TimeBlock $timeBlock): Carbon
     {
         $till = $timeBlock->getTill()->copy();
 
@@ -224,5 +224,7 @@ class DeclarationFactory
             case BlockTypes::YEARLY:
                 return $till->addMonthNoOverflow()->endOfMonth();
         }
+
+        throw PeriodException::invalidPeriod();
     }
 }
