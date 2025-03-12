@@ -19,4 +19,8 @@ class DeclarationException extends RuntimeException
         return new self('We can\'t guarantee loan calculation without blockType');
     }
 
+    public static function invalidDeclarationId(): self
+    {
+        return new self('Could not extract stripped declaration id');
+    }
 }

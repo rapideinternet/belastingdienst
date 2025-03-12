@@ -76,20 +76,13 @@ class DeclarationFactory
     {
         $from = $from->copy();
 
-        switch ($type) {
-            case BlockTypes::FOURWEEK:
-                return $this->calculateFourWeekPeriod($from);
-            case BlockTypes::MONTHLY:
-                return $from->month;
-            case BlockTypes::QUARTER:
-                return $from->quarter;
-            case BlockTypes::HALFYEAR:
-                return $from->month <= 6 ? 1 : 2;
-            case BlockTypes::YEARLY:
-                return 0;
-        }
-
-        throw PeriodException::invalidPeriod();
+        return match($type) {
+            BlockTypes::FOURWEEK => $this->calculateFourWeekPeriod($from),
+            BlockTypes::MONTHLY => $from->month,
+            BlockTypes::QUARTER => $from->quarter,
+            BlockTypes::HALFYEAR => $from->month <= 6 ? 1 : 2,
+            BlockTypes::YEARLY => 0,
+        };
     }
 
     public function calculateFiscalYear(Carbon $from, int $fiscalYearStartMonth): int
@@ -121,6 +114,9 @@ class DeclarationFactory
         throw PeriodException::invalidPeriod();
     }
 
+    /**
+     * @return array<int, array{from: Carbon, till: Carbon}>
+     */
     public function generateFourWeekPeriodTable(Carbon $from): array
     {
         $from = $from->copy()->startOfYear();
@@ -151,9 +147,13 @@ class DeclarationFactory
         return $table;
     }
 
-    public function create($declarationId, TimeBlock $timeBlock): Declaration
+    public function create(string $declarationId, TimeBlock $timeBlock): Declaration
     {
         $declarationIdStripped = preg_replace('/[\s.]+/', '', $declarationId);
+
+        if(! $declarationIdStripped) {
+            throw DeclarationException::invalidDeclarationId();
+        }
 
         //Composite the payment reference
         $paymentReference = sprintf('X%s%s%s%s%s%s',
@@ -186,21 +186,21 @@ class DeclarationFactory
         }
 
         $sum = 0;
-        $sum += $number[strlen($number) - 1] * 2;
-        $sum += $number[strlen($number) - 2] * 4;
-        $sum += $number[strlen($number) - 3] * 8;
-        $sum += $number[strlen($number) - 4] * 5;
-        $sum += $number[strlen($number) - 5] * 10;
-        $sum += $number[strlen($number) - 6] * 9;
-        $sum += $number[strlen($number) - 7] * 7;
-        $sum += $number[strlen($number) - 8] * 3;
-        $sum += $number[strlen($number) - 9] * 6;
-        $sum += $number[strlen($number) - 10] * 1;
-        $sum += $number[strlen($number) - 11] * 2;
-        $sum += $number[strlen($number) - 12] * 4;
-        $sum += $number[strlen($number) - 13] * 8;
-        $sum += $number[strlen($number) - 14] * 5;
-        $sum += $number[strlen($number) - 15] * 10;
+        $sum += (int) $number[strlen($number) - 1] * 2;
+        $sum += (int) $number[strlen($number) - 2] * 4;
+        $sum += (int) $number[strlen($number) - 3] * 8;
+        $sum += (int) $number[strlen($number) - 4] * 5;
+        $sum += (int) $number[strlen($number) - 5] * 10;
+        $sum += (int) $number[strlen($number) - 6] * 9;
+        $sum += (int) $number[strlen($number) - 7] * 7;
+        $sum += (int) $number[strlen($number) - 8] * 3;
+        $sum += (int) $number[strlen($number) - 9] * 6;
+        $sum += (int) $number[strlen($number) - 10] * 1;
+        $sum += (int) $number[strlen($number) - 11] * 2;
+        $sum += (int) $number[strlen($number) - 12] * 4;
+        $sum += (int) $number[strlen($number) - 13] * 8;
+        $sum += (int) $number[strlen($number) - 14] * 5;
+        $sum += (int) $number[strlen($number) - 15] * 10;
 
         $check = 11 - ($sum % 11);
 
