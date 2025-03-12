@@ -52,26 +52,18 @@ class TimeBlock
 
     public function getTypeLetter(): string
     {
-        switch ($this->type) {
-            case DeclarationTypes::LOAN:
-                return 'L';
-            case DeclarationTypes::REVENUE:
-                return 'B';
-        }
-
-        throw DeclarationException::notSupported($this->type);
+        return match($this->type) {
+            DeclarationTypes::LOAN => 'L',
+            DeclarationTypes::REVENUE => 'B',
+        };
     }
 
     public function getTypeCode(): int
     {
-        switch ($this->type) {
-            case DeclarationTypes::LOAN:
-                return 6;
-            case DeclarationTypes::REVENUE:
-                return 1;
-        }
-
-        throw DeclarationException::notSupported($this->type);
+        return match($this->type) {
+            DeclarationTypes::LOAN => 6,
+            DeclarationTypes::REVENUE => 1,
+        };
     }
 
     public function createTimeCode(): string
@@ -89,14 +81,10 @@ class TimeBlock
 
     public function getPeriodCode(): string
     {
-        switch ($this->type) {
-            case DeclarationTypes::LOAN:
-                return $this->getPeriodCodeForLoan();
-            case DeclarationTypes::REVENUE:
-                return $this->getPeriodCodeForRevenue();
-        }
-
-        throw DeclarationException::notSupported($this->type);
+        return match ($this->type) {
+             DeclarationTypes::LOAN => $this->getPeriodCodeForLoan(),
+             DeclarationTypes::REVENUE =>$this->getPeriodCodeForRevenue(),
+        };
     }
 
     public function getPeriodCodeForLoan(): string
