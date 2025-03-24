@@ -1,0 +1,44 @@
+grumphp:
+    ascii: ~
+    hooks_preset: local
+    hide_circumvention_tip: true
+    parallel:
+        enabled: true
+    fixer:
+        enabled: true
+        fix_by_default: true
+    tasks:
+        git_branch_name:
+            whitelist:
+                - 'issue/MKA-*'
+                - 'hotfix/*'
+                - 'fix/*'
+                - 'feature/*'
+                - 'chore/*'
+                - 'issue/*'
+                - 'staging'
+                - 'production'
+                - 'main'
+            blacklist:
+                - 'development'
+                - 'master'
+        git_commit_message:
+            enforce_capitalized_subject: false
+            max_body_width: 120
+            max_subject_width: 100
+            type_scope_conventions:
+                types:
+                    - chore
+                    - feat
+                    - fix
+                    - hotfix
+                scopes: []
+        composer:
+            file: ./composer.json
+        phpcsfixer:
+            config: ./php-cs-fixer.php
+        phpcs:
+            standard: ~
+        phpstan:
+            configuration: ~
+            memory_limit: 1G
