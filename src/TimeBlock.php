@@ -75,7 +75,7 @@ class TimeBlock
 
     public function getYearCode(): int
     {
-        return (int) ((string) $this->year)[- 1];
+        return (int) ((string) $this->year)[-1];
     }
 
     public function getPeriodCode(): string
@@ -88,32 +88,23 @@ class TimeBlock
 
     public function getPeriodCodeForLoan(): string
     {
-        switch ($this->block) {
-            case BlockTypes::MONTHLY:
-                return str_pad((string) $this->period, 2, '0', STR_PAD_LEFT);
-            case BlockTypes::FOURWEEK:
-                return $this->period >= 10 ? '8' . ((string) $this->period)[- 1] : '7' . $this->period;
-            case BlockTypes::HALFYEAR:
-                return '3' . $this->period;
-            case BlockTypes::YEARLY:
-                return '40';
-        }
-
-        throw PeriodException::invalidPeriod();
+        return match ($this->block) {
+            BlockTypes::MONTHLY => str_pad((string) $this->period, 2, '0', STR_PAD_LEFT),
+            BlockTypes::FOURWEEK => $this->period >= 10 ? '8' . ((string) $this->period)[-1] : '7' . $this->period,
+            BlockTypes::HALFYEAR => '3' . $this->period,
+            BlockTypes::YEARLY => '40',
+            default => throw PeriodException::invalidPeriod(),
+        };
     }
 
     public function getPeriodCodeForRevenue(): string
     {
-        switch ($this->block) {
-            case BlockTypes::MONTHLY:
-                return str_pad((string) $this->period, 2, '0', STR_PAD_LEFT);
-            case BlockTypes::QUARTER:
-                return (string) ((int) $this->month + 20);
-            case BlockTypes::YEARLY:
-                return '40';
-        }
-
-        throw PeriodException::invalidPeriod();
+        return match ($this->block) {
+            BlockTypes::MONTHLY => str_pad((string) $this->period, 2, '0', STR_PAD_LEFT),
+            BlockTypes::QUARTER => (string) ($this->month + 20),
+            BlockTypes::YEARLY => '40',
+            default => throw PeriodException::invalidPeriod(),
+        };
     }
 
     public function getBlock(): BlockTypes
