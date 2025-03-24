@@ -7,7 +7,6 @@ namespace Mijnkantoor\Belastingdienst;
 use Carbon\Carbon;
 use Mijnkantoor\Belastingdienst\Enums\BlockTypes;
 use Mijnkantoor\Belastingdienst\Enums\DeclarationTypes;
-use Mijnkantoor\Belastingdienst\Exceptions\DeclarationException;
 use Mijnkantoor\Belastingdienst\Exceptions\PeriodException;
 use Mijnkantoor\Belastingdienst\Exceptions\TimeBlockException;
 
@@ -35,8 +34,7 @@ class TimeBlock
         int $period,
         Carbon $from,
         Carbon $till
-    )
-    {
+    ) {
         if ($year < 1990 || $year > 2100) {
             throw TimeBlockException::invalidYear($year);
         }
@@ -52,7 +50,7 @@ class TimeBlock
 
     public function getTypeLetter(): string
     {
-        return match($this->type) {
+        return match ($this->type) {
             DeclarationTypes::LOAN => 'L',
             DeclarationTypes::REVENUE => 'B',
         };
@@ -60,7 +58,7 @@ class TimeBlock
 
     public function getTypeCode(): int
     {
-        return match($this->type) {
+        return match ($this->type) {
             DeclarationTypes::LOAN => 6,
             DeclarationTypes::REVENUE => 1,
         };
@@ -68,7 +66,8 @@ class TimeBlock
 
     public function createTimeCode(): string
     {
-        return sprintf('%1d%2s0',
+        return sprintf(
+            '%1d%2s0',
             $this->getYearCode(),
             $this->getPeriodCode()
         );
@@ -76,14 +75,14 @@ class TimeBlock
 
     public function getYearCode(): int
     {
-        return (int)((string)$this->year)[- 1];
+        return (int) ((string) $this->year)[- 1];
     }
 
     public function getPeriodCode(): string
     {
         return match ($this->type) {
-             DeclarationTypes::LOAN => $this->getPeriodCodeForLoan(),
-             DeclarationTypes::REVENUE =>$this->getPeriodCodeForRevenue(),
+            DeclarationTypes::LOAN => $this->getPeriodCodeForLoan(),
+            DeclarationTypes::REVENUE => $this->getPeriodCodeForRevenue(),
         };
     }
 
@@ -91,13 +90,13 @@ class TimeBlock
     {
         switch ($this->block) {
             case BlockTypes::MONTHLY:
-                return str_pad((string)$this->period, 2, '0', STR_PAD_LEFT);
+                return str_pad((string) $this->period, 2, '0', STR_PAD_LEFT);
             case BlockTypes::FOURWEEK:
-                return $this->period >= 10 ? "8" . ((string)$this->period)[- 1] : "7" . $this->period;
+                return $this->period >= 10 ? '8' . ((string) $this->period)[- 1] : '7' . $this->period;
             case BlockTypes::HALFYEAR:
-                return "3" . $this->period;
+                return '3' . $this->period;
             case BlockTypes::YEARLY:
-                return "40";
+                return '40';
         }
 
         throw PeriodException::invalidPeriod();
@@ -107,11 +106,11 @@ class TimeBlock
     {
         switch ($this->block) {
             case BlockTypes::MONTHLY:
-                return str_pad((string)$this->period, 2, '0', STR_PAD_LEFT);
+                return str_pad((string) $this->period, 2, '0', STR_PAD_LEFT);
             case BlockTypes::QUARTER:
-                return (string)((int)$this->month + 20);
+                return (string) ((int) $this->month + 20);
             case BlockTypes::YEARLY:
-                return "40";
+                return '40';
         }
 
         throw PeriodException::invalidPeriod();

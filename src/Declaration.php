@@ -12,6 +12,5 @@ class Declaration
         public string $declarationId,
         public string $paymentReference,
         public Carbon $paymentDueDate
-    )
-    {}
+    ) {}
 }

@@ -9,7 +9,6 @@ use Mijnkantoor\Belastingdienst\Enums\BlockTypes;
 use Mijnkantoor\Belastingdienst\Enums\DeclarationTypes;
 use Mijnkantoor\Belastingdienst\Exceptions\DeclarationException;
 use Mijnkantoor\Belastingdienst\Exceptions\PeriodException;
-use Mijnkantoor\Belastingdienst\Exceptions\TimeBlockException;
 
 class DeclarationFactory
 {
@@ -20,8 +19,7 @@ class DeclarationFactory
         Carbon $till,
         ?BlockTypes $blockType = null,
         ?int $period = null
-    ): Declaration
-    {
+    ): Declaration {
         $from = $from->copy();
         $till = $till->copy();
 
@@ -29,8 +27,8 @@ class DeclarationFactory
             throw DeclarationException::incompatibleLoan();
         }
 
-        $blockType = $blockType ?? $this->calculateBlock($from, $till);
-        $period = $period ?? $this->calculatePeriod($blockType, $from);
+        $blockType ??= $this->calculateBlock($from, $till);
+        $period ??= $this->calculatePeriod($blockType, $from);
 
         $year = $from->year;
         $month = $from->month; // we need this one for shifted quarters
@@ -76,7 +74,7 @@ class DeclarationFactory
     {
         $from = $from->copy();
 
-        return match($type) {
+        return match ($type) {
             BlockTypes::FOURWEEK => $this->calculateFourWeekPeriod($from),
             BlockTypes::MONTHLY => $from->month,
             BlockTypes::QUARTER => $from->quarter,
@@ -88,10 +86,10 @@ class DeclarationFactory
     public function calculateFiscalYear(Carbon $from, int $fiscalYearStartMonth): int
     {
         // get the year of the start date
-        $year = (int)$from->format('Y');
+        $year = (int) $from->format('Y');
 
         // check if the start date is before the fiscal year start month
-        if ((int)$from->format('m') < $fiscalYearStartMonth) {
+        if ((int) $from->format('m') < $fiscalYearStartMonth) {
             // if so, the year is the previous year
             $year--;
         }
@@ -133,7 +131,7 @@ class DeclarationFactory
         $table = [];
         $table[1] = ['from' => $from->copy(), 'till' => $till->copy()];
 
-        for ($i = 2; $i < 14; $i ++) {
+        for ($i = 2; $i < 14; $i++) {
             $from = $till->copy()->addDay();
             $till = $from->copy()->addWeeks(4)->subDay();
 
@@ -151,12 +149,13 @@ class DeclarationFactory
     {
         $declarationIdStripped = preg_replace('/[\s.]+/', '', $declarationId);
 
-        if(! $declarationIdStripped) {
+        if (! $declarationIdStripped) {
             throw DeclarationException::invalidDeclarationId();
         }
 
-        //Composite the payment reference
-        $paymentReference = sprintf('X%s%s%s%s%s%s',
+        // Composite the payment reference
+        $paymentReference = sprintf(
+            'X%s%s%s%s%s%s',
             substr($declarationIdStripped, 0, 8),
             $timeBlock->getTypeCode(),
             $timeBlock->getYearCode(),
@@ -165,13 +164,13 @@ class DeclarationFactory
             0 // fixed value
         );
 
-        //Calculate control number
+        // Calculate control number
         $controlNumber = $this->getControlNumber($paymentReference);
 
-        //Substitute control number
+        // Substitute control number
         $paymentReference[0] = $controlNumber;
 
-        //Calculate date
+        // Calculate date
         $paymentDueDate = $this->calculatePaymentDueDate($timeBlock);
 
         return new Declaration($declarationId, $paymentReference, $paymentDueDate);
@@ -217,6 +216,7 @@ class DeclarationFactory
                 if ($till->month - $timeBlock->getTill()->month > 1) {
                     $till->subMonth()->endOfMonth();
                 }
+
                 return $till;
             case BlockTypes::MONTHLY:
             case BlockTypes::QUARTER:
