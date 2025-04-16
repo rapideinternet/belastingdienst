@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<ruleset name="mka">
+    <arg value="p" />
+
+    <config name="ignore_warnings_on_exit" value="1" />
+    <config name="ignore_errors_on_exit" value="0" />
+
+    <arg name="colors" />
+    <arg value="s" />
+
+    <rule ref="Generic.Metrics.CyclomaticComplexity">
+        <properties>
+            <property name="complexity" value="20" />
+            <property name="absoluteComplexity" value="50" />
+        </properties>
+    </rule>
+    <rule ref="Squiz.PHP.CommentedOutCode">
+        <properties>
+            <property name="maxPercentage" value="20" />
+        </properties>
+    </rule>
+    <rule ref="Generic.Metrics.NestingLevel">
+        <properties>
+            <property name="nestingLevel" value="8" />
+            <property name="absoluteNestingLevel" value="12" />
+        </properties>
+    </rule>
+
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="100"/>
+            <property name="absoluteLineLimit" value="120"/>
+        </properties>
+    </rule>
+    <rule ref="Generic.PHP.ForbiddenFunctions">
+        <properties>
+            <property name="forbiddenFunctions" type="array">
+                <element key="print" value="echo"/>
+                <element key="var_dump" value="echo"/>
+                <element key="dd" value="echo"/>
+                <element key="die" value="null"/>
+                <element key="exit" value="null"/>
+                <element key="dump" value="echo"/>
+                <element key="print_r" value="echo"/>
+                <element key="exec" value="null"/>
+                <element key="shell_exec" value="null"/>
+                <element key="passthru" value="null"/>
+                <element key="system" value="null"/>
+                <element key="popen" value="null"/>
+                <element key="pcntl_exec" value="null"/>
+                <element key="proc_open" value="null"/>
+                <element key="eval" value="null"/>
+                <element key="create_function" value="null"/>
+                <element key="phpinfo" value="null"/>
+                <element key="init_set" value="null"/>
+            </property>
+        </properties>
+    </rule>
+</ruleset>

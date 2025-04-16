@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Mijnkantoor\Belastingdienst\Exceptions;
 
-class TimeBlockException extends \RuntimeException
+use RuntimeException;
+
+class TimeBlockException extends RuntimeException
 {
-    public static function invalidYear($year)
+    public static function invalidYear(int $year): self
     {
         return new self(sprintf('Invalid year %s', $year));
     }
